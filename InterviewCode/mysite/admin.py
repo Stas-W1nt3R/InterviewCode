@@ -1,3 +1,10 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import *
+
+
+admin.site.register(Room)
+admin.site.register(RoomParticipant)
+admin.site.register(TestCase)
+admin.site.register(Task)
+admin.site.register(Solution)
