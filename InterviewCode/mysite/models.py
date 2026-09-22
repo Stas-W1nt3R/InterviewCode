@@ -6,7 +6,7 @@ import uuid
 
 class Room(models.Model):
     name = models.CharField(max_length=40)
-    slug_id = models.SlugField(unique=True, default=uuid.uuid4, editable=False)
+    slug_id = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     users = models.ManyToManyField(User, related_name='rooms', through='RoomParticipant')
 
 
@@ -34,7 +34,7 @@ class RoomParticipant(models.Model):
         INTERVIEWER = 'INTERVIEWER', 'Интервьюер'
         CANDIDATE = 'CANDIDATE', 'Кандидат'
 
-    role = models.CharField(choices=Roles.choices, max_length=20, default='candidate')
+    role = models.CharField(choices=Roles.choices, max_length=20, default='CANDIDATE')
 
     def __str__(self):
         return f"{self.user.username},  {self.role}, {self.room.slug_id}"

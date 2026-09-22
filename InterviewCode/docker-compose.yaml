@@ -2,9 +2,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: InterviewCode
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: kondratiev
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -22,12 +22,12 @@ services:
     depends_on:
       - db
     environment:
-      - DB_HOST=db
-      - DB_NAME=InterviewCode
-      - DB_USER=postgres
-      - DB_PASSWORD=kondratiev
-      - DB_PORT=5432
-      - SECRET_KEY=django-insecure-dev-key-change-in-production
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=${DB_PORT}
+      - SECRET_KEY=${SECRET_KEY}
 
 volumes:
   postgres_data:
