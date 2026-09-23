@@ -1,12 +1,18 @@
 from django.db import models
-from django.contrib.auth.models import User
-
+from django.contrib.auth.models import AbstractUser
 import uuid
+
+
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
+
+    class Meta:
+        db_table = 'users'
 
 
 class Room(models.Model):
     name = models.CharField(max_length=40)
-    slug_id = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     users = models.ManyToManyField(User, related_name='rooms', through='RoomParticipant')
 
 
@@ -20,7 +26,7 @@ class Room(models.Model):
     task = models.ForeignKey('Task', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.name}, {self.slug_id}, {self.status}"
+        return f"{self.name}, {self.uuid}, {self.status}"
 
     class Meta:
         db_table = 'rooms'
@@ -72,7 +78,7 @@ class TestCase(models.Model):
 
 class Solution(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
-    users = models.ManyToManyField(User)
+    users = models.ManyToManyField(User, related_name='solutions')
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     code = models.TextField()
 
