@@ -1,5 +1,46 @@
 from rest_framework import serializers
 from .models import *
+from django.contrib.auth.password_validation import validate_password
+
+
+class RegistrationSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+    password_confirm = serializers.CharField(required=True, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password', 'password_confirm')
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Это имя уже занято!")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Этот email уже указан!")
+        return value
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
+    def validate(self, attrs: dict) -> dict:
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({
+                'password_confirm': 'Пароли не совпадают!'
+            })
+        return attrs
+
+    def create(self, validated_data: dict) -> User:
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+        )
+        return user
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -29,7 +29,7 @@ router.register(r'room_participants', RoomParticipantViewSet)
 router.register(r'tasks', TaskViewSet)
 router.register(r'test_cases', TestCaseViewSet)
 router.register(r'solutions', SolutionViewSet)
-
+router.register(r'register', RegistrationViewSet, basename='register')
 
 urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
@@ -37,8 +37,8 @@ urlpatterns = [
 
     path('api/', include(router.urls)),
 
-    path('api/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('admin/', admin.site.urls),
 ]
