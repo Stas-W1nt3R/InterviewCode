@@ -55,7 +55,8 @@ class RoomSerializer(serializers.ModelSerializer):
         many=True,
         queryset=User.objects.all(),
         source='users',
-        write_only=True
+        write_only=True,
+        required=False
     )
 
     class Meta:

@@ -43,7 +43,7 @@ class RoomParticipant(models.Model):
     role = models.CharField(choices=Roles.choices, max_length=20, default='CANDIDATE')
 
     def __str__(self):
-        return f"{self.user.username},  {self.role}, {self.room.slug_id}"
+        return f"{self.user.username},  {self.role}, {self.room.uuid}"
 
     class Meta:
         unique_together = ('room', 'user')

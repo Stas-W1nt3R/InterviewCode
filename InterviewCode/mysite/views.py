@@ -1,8 +1,10 @@
-from django.shortcuts import render
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from .serializers import *
 from .models import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -12,9 +14,47 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class RoomViewSet(viewsets.ModelViewSet):
-    queryset = Room.objects.all()
+    lookup_field = 'uuid'
     serializer_class = RoomSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Room.objects.filter(users=self.request.user)
+
+    def perform_create(self, serializer):
+        room = serializer.save()
+        RoomParticipant.objects.create(
+            user=self.request.user,
+            room=room,
+            role=RoomParticipant.Roles.INTERVIEWER,
+        )
+
+    @action(detail=True, methods=['post'])
+    def join(self, request, uuid=None):
+        room = get_object_or_404(Room, uuid=uuid)
+
+        if room.status in (Room.Status.COMPLETED, Room.Status.CANCELED):
+            return Response({'detail': 'Комната недоступна'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if room.participants.filter(user=request.user).exists():
+            return Response(
+                {'detail': 'Вы уже в этой комнате'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        room.status = Room.Status.PROCESSING
+        room.save()
+
+        RoomParticipant.objects.create(
+            room=room,
+            user=request.user,
+            role=RoomParticipant.Roles.CANDIDATE
+        )
+
+        return Response(
+            RoomSerializer(room).data, status=status.HTTP_200_OK
+        )
+
 
 class RoomParticipantViewSet(viewsets.ModelViewSet):
     queryset = RoomParticipant.objects.all()
