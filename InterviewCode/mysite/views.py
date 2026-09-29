@@ -55,6 +55,25 @@ class RoomViewSet(viewsets.ModelViewSet):
             RoomSerializer(room).data, status=status.HTTP_200_OK
         )
 
+    @action(detail=True, methods=['post'], url_path='finish')
+    def finish(self, request, uuid=None):
+        room = get_object_or_404(Room, uuid=uuid)
+        user = get_object_or_404(RoomParticipant, room=room, user=request.user)
+
+        if user.role != RoomParticipant.Roles.INTERVIEWER:
+            return Response({'detail': 'Завершить собеседование может только интервьюер'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        if room.status != Room.Status.PROCESSING:
+            return Response({'detail': 'Комнату можно завершить только в статусе Processing'}, status=status.HTTP_400_BAD_REQUEST)
+
+        room.status = Room.Status.COMPLETED
+        room.save(update_fields=['status'])
+
+        return Response(
+            RoomSerializer(room).data, status=status.HTTP_200_OK
+        )
+
 
 class RoomParticipantViewSet(viewsets.ModelViewSet):
     queryset = RoomParticipant.objects.all()
