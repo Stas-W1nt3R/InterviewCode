@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -97,6 +98,18 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
 
 class RegistrationViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.none()
     serializer_class = RegistrationSerializer
     permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        token = RefreshToken.for_user(user)
+
+        return Response({
+            'user': {'id': user.id, 'username': user.username},
+            'access': str(token.access_token),
+            'refresh': str(token),
+        }, status=status.HTTP_201_CREATED)
