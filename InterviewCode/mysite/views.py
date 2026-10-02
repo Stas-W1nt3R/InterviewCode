@@ -37,23 +37,18 @@ class RoomViewSet(viewsets.ModelViewSet):
         if room.status in (Room.Status.COMPLETED, Room.Status.CANCELED):
             return Response({'detail': 'Комната недоступна'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if room.participants.filter(user=request.user).exists():
-            return Response(
-                {'detail': 'Вы уже в этой комнате'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        room.status = Room.Status.PROCESSING
-        room.save()
-
-        RoomParticipant.objects.create(
+        participant, created = RoomParticipant.objects.get_or_create(
             room=room,
             user=request.user,
-            role=RoomParticipant.Roles.CANDIDATE
+            defaults={'role': RoomParticipant.Roles.CANDIDATE}
         )
 
+        if created and room.status == Room.Status.WAITING:
+            room.status = Room.Status.PROCCESSING
+            room.save(update_fields=['status'])
+
         return Response(
-            RoomSerializer(room).data, status=status.HTTP_200_OK
+            self.get_serializer(room).data, status=status.HTTP_200_OK
         )
 
     @action(detail=True, methods=['post'], url_path='finish')
