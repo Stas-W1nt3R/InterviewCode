@@ -197,8 +197,7 @@ async function createRoom() {
 async function joinRoom(uuid) {
   try {
     await api(`/rooms/${uuid}/join/`, { method: 'POST' });
-    alert('Вы вошли в комнату! Страница комнаты — следующий шаг.');
-    await loadRooms();
+    window.location.href = `room.html?uuid=${uuid}`;
   } catch (e) { alert(e.message); }
 }
 

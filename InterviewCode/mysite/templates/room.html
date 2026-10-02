@@ -1,10 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Страница комнаты</title>
+<meta charset="UTF-8">
+<title>Комната</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d1117; color: #e6edf3;
+    min-height: 100vh; display: flex; justify-content: center; padding: 40px 16px;
+  }
+  .container { width: 100%; max-width: 640px; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  .muted { color: #8b949e; font-size: 14px; margin-bottom: 24px; }
+
+  .card {
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 10px; padding: 20px; margin-bottom: 16px;
+  }
+  input {
+    width: 100%; padding: 10px 12px; margin-bottom: 10px;
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    color: #e6edf3; font-size: 14px;
+  }
+  input:focus { outline: none; border-color: #58a6ff; }
+
+  button {
+    padding: 10px 16px; border: none; border-radius: 6px;
+    background: #238636; color: #fff; font-size: 14px; cursor: pointer;
+  }
+  button:hover { background: #2ea043; }
+  button.secondary { background: #21262d; border: 1px solid #30363d; }
+  button.secondary:hover { background: #30363d; }
+
+  .row { display: flex; gap: 10px; align-items: center; }
+  .room-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid #21262d;
+  }
+  .room-item:last-child { border-bottom: none; }
+  .badge {
+    font-size: 12px; padding: 2px 8px; border-radius: 10px;
+    background: #1f6feb33; color: #58a6ff;
+  }
+  .error { color: #f85149; font-size: 13px; margin-top: 8px; }
+  .hidden { display: none; }
+</style>
+
 </head>
 <body>
+    <div class="container">
+        <h1>Комната</h1>
+        <p class="muted">UUID : <span id="roomUuid"></span></p>
+        
+        <div class="card">
+            <h3>Код</h3>
+            <div id="editor">Тут будет редактор кода xDDD</div>
+        </div>
 
+        <div class="card">
+            <button onclick="finishRoom()">Завершить собеседование</button>
+            <button class="secondary" onclick="leaveRoom()">Выйти в лобби</button>
+        </div>
+    </div>
+
+<script>
+const API = 'http://localhost:8000/api';
+const uuid = new URLSearchParams(location.search).get('uuid');
+
+if (!uuid) {
+    alert('Не указан uuid комнаты');
+    location.href = 'register.html';
+}
+
+document.getElementById('roomUuid').textContent = uuid;
+
+function token() {
+    return localStorage.getItem('access');
+}
+
+async function api(path, options = {}) {
+  const res = await fetch(API + path, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token() ? { Authorization: 'Bearer ' + token() } : {}),
+    },
+    ...options,
+  });
+  if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+  return res.json();
+}
+
+async function finishRoom() {
+    try {
+        await api(`/rooms/${uuid}/finish/`, { method: 'POST' });
+        alert('Интервью закончено');
+        location.href='register.html';
+    } catch (e) { alert(e.message); }
+}
+
+function leaveRoom() {
+    location.href = 'register.html';
+}
+
+</script>
 </body>
 </html>
