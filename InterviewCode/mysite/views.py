@@ -44,7 +44,7 @@ class RoomViewSet(viewsets.ModelViewSet):
         )
 
         if created and room.status == Room.Status.WAITING:
-            room.status = Room.Status.PROCCESSING
+            room.status = Room.Status.PROCESSING
             room.save(update_fields=['status'])
 
         return Response(

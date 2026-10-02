@@ -1,10 +1,244 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Главная страница</title>
-</head>
-<body>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InterviewCode — Лобби</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d1117; color: #e6edf3;
+      min-height: 100vh; display: flex; justify-content: center; padding: 40px 16px;
+    }
+    .container { width: 100%; max-width: 640px; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    .muted { color: #8b949e; font-size: 14px; margin-bottom: 24px; }
 
+    .card {
+      background: #161b22; border: 1px solid #30363d;
+      border-radius: 10px; padding: 20px; margin-bottom: 16px;
+    }
+    input {
+      width: 100%; padding: 10px 12px; margin-bottom: 10px;
+      background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+      color: #e6edf3; font-size: 14px;
+    }
+    input:focus { outline: none; border-color: #58a6ff; }
+
+    button {
+      padding: 10px 16px; border: none; border-radius: 6px;
+      background: #238636; color: #fff; font-size: 14px; cursor: pointer;
+    }
+    button:hover { background: #2ea043; }
+    button.secondary { background: #21262d; border: 1px solid #30363d; }
+    button.secondary:hover { background: #30363d; }
+
+    .row { display: flex; gap: 10px; align-items: center; }
+    .room-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid #21262d;
+    }
+    .room-item:last-child { border-bottom: none; }
+    .badge {
+      font-size: 12px; padding: 2px 8px; border-radius: 10px;
+      background: #1f6feb33; color: #58a6ff;
+    }
+    .error { color: #f85149; font-size: 13px; margin-top: 8px; }
+    .hidden { display: none; }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <h1>InterviewCode</h1>
+  <p class="muted">Платформа для технических собеседований</p>
+
+  <div id="auth" class="card">
+    <!-- Блок входа -->
+    <div id="loginForm">
+      <h3 style="margin-bottom:12px">Вход</h3>
+      <input id="login-username" placeholder="Логин">
+      <input id="login-password" type="password" placeholder="Пароль">
+      <button onclick="login()">Войти</button>
+      <p class="muted" style="margin-top: 10px;">
+        Нет аккаунта? <a href="#" onclick="showRegister(event)" style="color:#58a6ff">Создать</a>
+      </p>
+    </div>
+
+    <!-- Блок регистрации -->
+    <div id="registerForm" class="hidden">
+      <h3 style="margin-bottom:12px">Регистрация</h3>
+      <input id="reg-username" placeholder="Логин">
+      <input id="reg-email" type="email" placeholder="Email">
+      <input id="reg-password" type="password" placeholder="Пароль">
+      <input id="reg-password-confirm" type="password" placeholder="Повторите пароль">
+      <button onclick="register()">Зарегистрироваться</button>
+      <p class="muted" style="margin-top: 10px;">
+        Уже есть аккаунт? <a href="#" onclick="showLogin(event)" style="color:#58a6ff">Войти</a>
+      </p>
+    </div>
+
+    <div id="authError" class="error"></div>
+  </div>
+
+  <!-- Блок лобби -->
+  <div id="lobby" class="hidden">
+    <div class="card">
+      <div class="row">
+        <button onclick="createRoom()">+ Создать комнату</button>
+        <button class="secondary" onclick="logout()">Выйти</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Мои комнаты</h3>
+      <div id="rooms"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+
+function showRegister(e) {
+  e.preventDefault();
+  loginForm.classList.add('hidden');
+  registerForm.classList.remove('hidden');
+  authError.textContent = '';
+}
+
+function showLogin(e) {
+  e.preventDefault();
+  registerForm.classList.add('hidden');
+  loginForm.classList.remove('hidden');
+  authError.textContent = '';
+}
+
+function token() { return localStorage.getItem('access'); }
+
+async function api(path, options = {}) {
+  const res = await fetch(API + path, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token() ? { Authorization: 'Bearer ' + token() } : {}),
+    },
+    ...options,
+  });
+  if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+  return res.json();
+}
+
+async function login() {
+  try {
+    const data = await api('/token/', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: document.getElementById('login-username').value,
+        password: document.getElementById('login-password').value,
+      }),
+    });
+    localStorage.setItem('access', data.access);
+    localStorage.setItem('refresh', data.refresh);
+
+    const redirect = sessionStorage.getItem('redirect_after_login');
+    if (redirect) {
+      sessionStorage.removeItem('redirect_after_login');
+      location.href=redirect;
+      return;
+    }
+
+    showLobby();
+  } catch (e) { authError.textContent = e.message; }
+}
+
+async function register() {
+  try {
+    const data = await api('/register/', {
+      method: 'POST',
+      body: JSON.stringify({
+        username:document.getElementById('reg-username').value,
+        email: document.getElementById('reg-email').value,
+        password: document.getElementById('reg-password').value,
+        password_confirm: document.getElementById('reg-password-confirm').value,
+      }),
+    });
+    localStorage.setItem('access', data.access);
+    localStorage.setItem('refresh', data.refresh);
+
+    const redirect = sessionStorage.getItem('redirect_after_login');
+    if (redirect) {
+      sessionStorage.removeItem('redirect_after_login');
+      location.href = redirect;
+      return;
+    }
+
+    showLobby();
+  } catch (e) { authError.textContent = e.message; }
+}
+
+async function showLobby() {
+  auth.classList.add('hidden');
+  lobby.classList.remove('hidden');
+  await loadRooms();
+}
+
+async function loadRooms() {
+  try {
+    const data = await api('/rooms/');
+    rooms.innerHTML = data.results?.length || data.length
+      ? (data.results || data).map(room => `
+        <div class="room-item">
+          <div>
+            <div>${room.name ?? room.uuid}</div>
+            <span class="badge">${room.status}</span>
+          </div>
+          <div class="row">
+            <button class="secondary" onclick="copyInvite('${room.uuid}')">Пригласить</button>
+            <button class="secondary" onclick="joinRoom('${room.uuid}')">Войти</button>
+          </div>
+        </div>`).join('')
+      : '<p class="muted">Пока нет комнат — создай первую!</p>';
+  } catch (e) { rooms.innerHTML = `<p class="error">${e.message}</p>`; }
+}
+
+async function createRoom() {
+  const name = prompt('Название комнаты:');
+  if (!name) return;
+  try {
+    await api('/rooms/', { method: 'POST', body: JSON.stringify({ name }) });
+    await loadRooms();
+  } catch (e) { alert(e.message); }
+}
+
+async function joinRoom(uuid) {
+  if (!token()) {
+    sessionStorage.setItem('redirect_after_login', `/room/${uuid}/`);
+    alert("Войдите, чтобы присоединиться к собеседованию");
+    location.href='/';
+    return;
+  }
+
+  try {
+    await api(`/rooms/${uuid}/join/`, { method: 'POST' });
+    window.location.href = `/room/${uuid}/`;
+  } catch (e) { alert(e.message); }
+
+
+}
+
+function copyInvite(uuid) {
+  navigator.clipboard.writeText(`${location.origin}/room/${uuid}/`);
+  alert('Ссылка для кандидата скопирована!');
+}
+
+function logout() {
+  localStorage.clear();
+  location.reload();
+}
+
+// Автовход, если токен ещё жив
+if (token()) showLobby();
+</script>
 </body>
 </html>
