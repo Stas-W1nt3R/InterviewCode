@@ -4,3 +4,7 @@ python-dotenv~=1.2.3
 djangorestframework==3.18.1
 djangorestframework_simplejwt==5.5.1
 drf-spectacular==0.30.0
+daphne==4.2.3
+channels==4.3.2
+channels_redis==4.3.0
+redis>=5,<6  # channels_redis падает с TimeoutError на redis-py 6+
