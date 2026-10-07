@@ -10,6 +10,11 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379-6379"
+
   web:
     build: .
     command:
@@ -21,6 +26,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - redis
     environment:
       - DB_HOST=${DB_HOST}
       - DB_NAME=${DB_NAME}

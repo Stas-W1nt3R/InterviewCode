@@ -35,10 +35,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'mysite',
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -74,6 +76,7 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'InterviewCode.asgi.application'
 WSGI_APPLICATION = 'InterviewCode.wsgi.application'
 
 
@@ -148,6 +151,15 @@ STATIC_URL = 'static/'
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+    },
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('redis', 6379)],
+        },
     },
 }
 

@@ -20,7 +20,7 @@ class RoomViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Room.objects.filter(users=self.request.user)
+        return Room.objects.filter(users=self.request.user).prefetch_related('participants__user')
 
     def perform_create(self, serializer):
         room = serializer.save()

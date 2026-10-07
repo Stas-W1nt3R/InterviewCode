@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,7 @@
     .container { width: 100%; max-width: 640px; }
     h1 { font-size: 24px; margin-bottom: 4px; }
     .muted { color: #8b949e; font-size: 14px; margin-bottom: 24px; }
-
+ 
     .card {
       background: #161b22; border: 1px solid #30363d;
       border-radius: 10px; padding: 20px; margin-bottom: 16px;
@@ -24,7 +25,7 @@
       color: #e6edf3; font-size: 14px;
     }
     input:focus { outline: none; border-color: #58a6ff; }
-
+ 
     button {
       padding: 10px 16px; border: none; border-radius: 6px;
       background: #238636; color: #fff; font-size: 14px; cursor: pointer;
@@ -32,44 +33,63 @@
     button:hover { background: #2ea043; }
     button.secondary { background: #21262d; border: 1px solid #30363d; }
     button.secondary:hover { background: #30363d; }
-
+ 
     .row { display: flex; gap: 10px; align-items: center; }
-    .room-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 0; border-bottom: 1px solid #21262d;
-    }
-    .room-item:last-child { border-bottom: none; }
-    .badge {
-      font-size: 12px; padding: 2px 8px; border-radius: 10px;
-      background: #1f6feb33; color: #58a6ff;
-    }
     .error { color: #f85149; font-size: 13px; margin-top: 8px; }
     .hidden { display: none; }
+ 
+    #editor {
+      height: 400px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
   </style>
 </head>
-
+ 
 <body>
     <div class="container">
         <h1>Комната</h1>
         <p class="muted">UUID : <span id="roomUuid"></span></p>
-        
+ 
         <div class="card">
-            <h3>Код</h3>
-            <div id="editor">Тут будет редактор кода xDDD</div>
+            <h3 style="margin-bottom:12px">Код</h3>
+            <div id="editor"></div>
         </div>
-
+ 
         <div class="card">
             <button onclick="finishRoom()">Завершить собеседование</button>
             <button class="secondary" onclick="leaveRoom()">Выйти в лобби</button>
         </div>
     </div>
-
+ 
+<script type="importmap">
+{
+  "imports": {
+    "collab-bundle": "{% static 'mysite/vendor/collab-bundle.js' %}",
+    "monaco-editor/esm/vs/editor/editor.api.js": "{% static 'mysite/vendor/monaco-shim.mjs' %}"
+  }
+}
+</script>
+ 
+<script src="{% static 'mysite/vendor/monaco/min/vs/loader.js' %}"></script>
 <script>
-
+  require.config({ paths: { vs: "{% static 'mysite/vendor/monaco/min/vs' %}" } });
+  require(['vs/editor/editor.main'], function () {
+    import("{% static 'mysite/vendor/room-editor.mjs' %}").then((mod) => {
+      window.__roomEditorModule = mod;
+      window.__roomEditorReady = true;
+    }).catch((e) => {
+      console.error('Не удалось загрузить room-editor.mjs:', e);
+    });
+  });
+</script>
+ 
+<script>
+ 
 function token() {
   return localStorage.getItem('access');
 }
-
+ 
 async function api(path, options = {}) {
   const API = '/api';
   const res = await fetch(API + path, {
@@ -84,7 +104,7 @@ async function api(path, options = {}) {
 }
 
 let uuid = null;
-
+ 
 async function finishRoom() {
   try {
     await api(`/rooms/${uuid}/finish/`, { method: 'POST' });
@@ -92,41 +112,46 @@ async function finishRoom() {
     location.href = '/';
   } catch (e) { alert(e.message); }
 }
-
+ 
 function leaveRoom() {
   location.href = '/';
 }
-
-// Инициализация
+ 
 async function init() {
   if (!token()) {
     sessionStorage.setItem('redirect_after_login', location.pathname);
     location.href = '/';
     return;
   }
-  
+ 
   uuid = location.pathname.split('/').filter(Boolean).pop();
-  
+ 
   if (!uuid) {
     alert('Не указан uuid комнаты');
     location.href = '/';
     return;
   }
-  
+ 
   document.getElementById('roomUuid').textContent = uuid;
-  
+ 
   try {
     await api(`/rooms/${uuid}/join/`, { method: 'POST' });
     const room = await api(`/rooms/${uuid}/`);
     console.log('Комната:', room);
+ 
+    // ждём, пока AMD Monaco + динамический импорт room-editor.mjs отработают
+    while (!window.__roomEditorReady) {
+      await new Promise(r => setTimeout(r, 50));
+    }
+    window.__roomEditorModule.initEditor(uuid);
   } catch (e) {
     alert('Ошибка: ' + e.message);
     location.href = '/';
   }
 }
-
+ 
 init();
-
+ 
 </script>
 </body>
 </html>
