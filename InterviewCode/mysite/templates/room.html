@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <meta charset="UTF-8">
   <title>Комната</title>
   <style>
@@ -43,6 +44,38 @@
       border-radius: 6px;
       overflow: hidden;
     }
+
+    .card-header {
+      display: flex;
+      justify-content: flex-start; 
+      gap: 10px;
+      align-items: center;            
+      margin-bottom: 12px;
+    }
+
+    .card-header button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+    }
+
+    #output {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      color: #e6edf3;
+      height: 150px;
+      overflow-y: auto;      
+      white-space: pre-wrap;  
+      word-break: break-all;
+    }
+
   </style>
 </head>
  
@@ -52,8 +85,15 @@
         <p class="muted">UUID : <span id="roomUuid"></span></p>
  
         <div class="card">
-            <h3 style="margin-bottom:12px">Код</h3>
+            <div class="card-header">
+              <h3>Код</h3>
+              <button id="btn-stop" title="Остановить"><img src="/static/mysite/icons/stop-button.svg" alt="Запустить"></button>
+              <button id="btn-run" title="Запустить">
+                <i class="fa-solid fa-play"></i>
+              </button>
+            </div>
             <div id="editor"></div>
+            <pre id="output">Здесь будет вывод программы...</pre>
         </div>
  
         <div class="card">
