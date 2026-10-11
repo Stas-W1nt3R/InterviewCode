@@ -7,6 +7,10 @@ class RoomConsumer(AsyncWebsocketConsumer):
         self.room_uuid = self.scope['url_route']['kwargs']['room_uuid']
         self.room_group_uuid = f'room_{self.room_uuid}'
 
+        if not self.scope['user'].is_authenticated:
+            await self.close(code=401)
+            return
+
         await self.channel_layer.group_add(
             self.room_group_uuid,
             self.channel_name
@@ -15,10 +19,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_uuid,
-            self.channel_name
-        )
+        if hasattr(self, 'room_group_uuid'):
+            await self.channel_layer.group_discard(
+                self.room_group_uuid,
+                self.channel_name
+            )
 
     async def receive(self, text_data=None, bytes_data=None):
         if bytes_data:
