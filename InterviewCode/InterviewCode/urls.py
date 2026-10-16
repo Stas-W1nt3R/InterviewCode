@@ -42,6 +42,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('register/', TemplateView.as_view(template_name='register.html'), name='register'),
     path('room/<uuid:uuid>/', TemplateView.as_view(template_name='room.html'), name='room'),
     path('admin/', admin.site.urls),
 ]

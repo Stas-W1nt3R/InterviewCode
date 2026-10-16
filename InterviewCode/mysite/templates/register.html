@@ -3,9 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>InterviewCode — Вход</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d1117; color: #e6edf3;
+      min-height: 100vh; display: flex; justify-content: center; padding: 40px 16px;
+    }
+    .container { width: 100%; max-width: 640px; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    .muted { color: #8b949e; font-size: 14px; margin-bottom: 24px; }
+
+    .card {
+      background: #161b22; border: 1px solid #30363d;
+      border-radius: 10px; padding: 20px; margin-bottom: 16px;
+    }
+    input {
+      width: 100%; padding: 10px 12px; margin-bottom: 10px;
+      background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+      color: #e6edf3; font-size: 14px;
+    }
+    input:focus { outline: none; border-color: #58a6ff; }
+
+    button {
+      padding: 10px 16px; border: none; border-radius: 6px;
+      background: #238636; color: #fff; font-size: 14px; cursor: pointer;
+    }
+    button:hover { background: #2ea043; }
+
+    .error { color: #f85149; font-size: 13px; margin-top: 8px; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-  
+<div class="container">
+
+  <h1>InterviewCode</h1>
+  <p class="muted">Платформа для технических собеседований</p>
+
+  <div id="auth" class="card">
+    <!-- Блок входа -->
+    <div id="loginForm">
+      <h3 style="margin-bottom:12px">Вход</h3>
+      <input id="login-username" placeholder="Логин">
+      <input id="login-password" type="password" placeholder="Пароль">
+      <button onclick="login()">Войти</button>
+      <p class="muted" style="margin-top: 10px;">
+        Нет аккаунта? <a href="#" onclick="showRegister(event)" style="color:#58a6ff">Создать</a>
+      </p>
+    </div>
+
+    <!-- Блок регистрации -->
+    <div id="registerForm" class="hidden">
+      <h3 style="margin-bottom:12px">Регистрация</h3>
+      <input id="reg-username" placeholder="Логин">
+      <input id="reg-email" type="email" placeholder="Email">
+      <input id="reg-password" type="password" placeholder="Пароль">
+      <input id="reg-password-confirm" type="password" placeholder="Повторите пароль">
+      <button onclick="register()">Зарегистрироваться</button>
+      <p class="muted" style="margin-top: 10px;">
+        Уже есть аккаунт? <a href="#" onclick="showLogin(event)" style="color:#58a6ff">Войти</a>
+      </p>
+    </div>
+
+    <div id="authError" class="error"></div>
+  </div>
+</div>
+<script>
+
+const API = '/api';
+
+function token() { return localStorage.getItem('access'); }
+
+async function api(path, options = {}) {
+  const res = await fetch(API + path, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token() ? { Authorization: 'Bearer ' + token() } : {}),
+    },
+    ...options,
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try { detail = (await res.json()).detail || detail; } catch (_) {}
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+function goAfterAuth() {
+  const redirect = sessionStorage.getItem('redirect_after_login');
+  if (redirect) {
+    sessionStorage.removeItem('redirect_after_login');
+    location.href = redirect;
+  } else {
+    location.href = '/';
+  }
+}
+
+async function login() {
+  try {
+    const data = await api('/token/', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: document.getElementById('login-username').value,
+        password: document.getElementById('login-password').value,
+      }),
+    });
+    localStorage.setItem('access', data.access);
+    localStorage.setItem('refresh', data.refresh);
+
+    goAfterAuth();
+
+  } catch (e) { authError.textContent = e.message; }
+}
+
+async function register() {
+  try {
+    const data = await api('/register/', {
+      method: 'POST',
+      body: JSON.stringify({
+        username:document.getElementById('reg-username').value,
+        email: document.getElementById('reg-email').value,
+        password: document.getElementById('reg-password').value,
+        password_confirm: document.getElementById('reg-password-confirm').value,
+      }),
+    });
+    localStorage.setItem('access', data.access);
+    localStorage.setItem('refresh', data.refresh);
+
+    goAfterAuth();
+
+  } catch (e) { authError.textContent = e.message; }
+}    
+
+function showRegister(e) {
+  e.preventDefault();
+  loginForm.classList.add('hidden');
+  registerForm.classList.remove('hidden');
+  authError.textContent = '';
+}
+
+function showLogin(e) {
+  e.preventDefault();
+  registerForm.classList.add('hidden');
+  loginForm.classList.remove('hidden');
+  authError.textContent = '';
+}
+
+if (token()) {
+  goAfterAuth();
+}
+
+</script>
 </body>
 </html>
