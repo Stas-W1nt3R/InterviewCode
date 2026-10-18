@@ -4,6 +4,7 @@ from contextlib import suppress
 from docker.errors import NotFound, DockerException, APIError
 
 client = docker.from_env()
+room_dict = {}
 
 def kill_container(container):
     try:
@@ -11,7 +12,7 @@ def kill_container(container):
     except (NotFound, APIError):
         pass
 
-def run_code(code):
+def run_code(code, uuid):
     container = None
     timer = None
 
@@ -30,6 +31,8 @@ def run_code(code):
             stdout=True,
             stderr=True,
         )
+
+        room_dict[uuid] = container
 
         timer = Timer(10, kill_container, [container])
         timer.start()
@@ -58,3 +61,16 @@ def run_code(code):
 
         with suppress(DockerException, AttributeError):
             container.remove(force=True)
+
+        room_dict.pop(uuid, None)
+
+def is_running(uuid):
+    return uuid in room_dict
+
+def stop_code(uuid):
+    try:
+        kill_container(room_dict[uuid])
+    except KeyError:
+        return False
+
+    return True
