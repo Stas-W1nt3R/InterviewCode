@@ -87,8 +87,8 @@
         <div class="card">
             <div class="card-header">
               <h3>Код</h3>
-              <button id="btn-stop" title="Остановить"><img src="/static/mysite/icons/stop-button.svg" alt="Запустить"></button>
-              <button id="btn-run" title="Запустить">
+              <button id="btn-stop" onclick="stop_button()" title="Остановить"><img src="/static/mysite/icons/stop-button.svg" alt="Запустить"></button>
+              <button id="btn-run" onclick="run_button()" title="Запустить">
                 <i class="fa-solid fa-play"></i>
               </button>
             </div>
@@ -125,7 +125,9 @@
 </script>
  
 <script>
- 
+
+let runWs = null;
+
 function token() {
   return localStorage.getItem('access');
 }
@@ -165,7 +167,7 @@ async function init() {
   }
  
   uuid = location.pathname.split('/').filter(Boolean).pop();
- 
+
   if (!uuid) {
     alert('Не указан uuid комнаты');
     location.href = '/';
@@ -176,6 +178,31 @@ async function init() {
  
   try {
     await api(`/rooms/${uuid}/join/`, { method: 'POST' });
+
+    const wsToken = token();
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    runWs = new WebSocket(`${protocol}://${location.host}/ws/run/${uuid}/?token=${wsToken}`);
+
+    runWs.onmessage = (event) => {
+      let data;
+
+      try {
+        data = JSON.parse(event.data);
+      } catch(e) {
+        console.error("Не удалось разобрать JSON", event.data);
+        return;
+      }
+    
+
+      const output = document.getElementById("output");
+      if (data.type === 'run_output'){
+        output.textContent += data.data;
+        output.scrollTop = output.scrollHeight;
+      } else if (data.type === 'run_finished'){
+        
+      }
+    }
+
     const room = await api(`/rooms/${uuid}/`);
     console.log('Комната:', room);
  
@@ -189,9 +216,22 @@ async function init() {
     location.href = '/';
   }
 }
- 
+
 init();
  
+function run_button(){
+  if (runWs && runWs.readyState === WebSocket.OPEN){
+    document.getElementById('output').textContent = '';
+    runWs.send(JSON.stringify({ type: "run", code: window.__editor.getValue() }));
+  }
+}
+
+function stop_button(){
+  if (runWs && runWs.readyState === WebSocket.OPEN){
+    runWs.send(JSON.stringify({ type: "stop" }));
+  }
+}
+
 </script>
 </body>
 </html>
