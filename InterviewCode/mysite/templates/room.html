@@ -162,7 +162,7 @@ function leaveRoom() {
 async function init() {
   if (!token()) {
     sessionStorage.setItem('redirect_after_login', location.pathname);
-    location.href = '/';
+    location.href = 'register/';
     return;
   }
  
@@ -192,14 +192,20 @@ async function init() {
         console.error("Не удалось разобрать JSON", event.data);
         return;
       }
-    
 
       const output = document.getElementById("output");
       if (data.type === 'run_output'){
         output.textContent += data.data;
         output.scrollTop = output.scrollHeight;
       } else if (data.type === 'run_finished'){
-        
+        document.getElementById('btn-run').disabled = false;
+      } else if (data.type === 'run_started') {
+        document.getElementById('btn-run').disabled = true;
+        output.textContent = '';
+      }
+
+      runWs.onclose = (event) => {
+        output.textContent += "Соединение потеряно, перезагрузите страницу!";
       }
     }
 
@@ -223,6 +229,8 @@ function run_button(){
   if (runWs && runWs.readyState === WebSocket.OPEN){
     document.getElementById('output').textContent = '';
     runWs.send(JSON.stringify({ type: "run", code: window.__editor.getValue() }));
+    runWs.send(JSON.stringify({ type: "" }))
+    document.getElementById('btn-run').disabled = true;
   }
 }
 

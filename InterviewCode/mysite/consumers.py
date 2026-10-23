@@ -83,6 +83,13 @@ class RunConsumer(AsyncWebsocketConsumer):
 
     async def run_job(self, code):
         gen = run_code(code, self.room_uuid)
+
+        await self.channel_layer.group_send(
+            self.room_group_uuid,
+            {
+                'type': 'run_started',
+            }
+        )
         try:
             while True:
                 res = await asyncio.to_thread(next, gen, None)
@@ -110,6 +117,9 @@ class RunConsumer(AsyncWebsocketConsumer):
 
     async def run_finished(self, event):
         await self.send(text_data=json.dumps({'type': 'run_finished'}))
+
+    async def run_started(self, event):
+        await self.send(text_data=json.dumps({'type': 'run_started'}))
 
     async def receive(self, text_data=None):
         if text_data:
