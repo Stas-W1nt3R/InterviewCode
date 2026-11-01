@@ -8,7 +8,6 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-<!-- Добавь скриншот или гифку работы комнаты: положи файл в docs/demo.gif -->
 ![Демо](docs/demo.gif)
 
 ---
