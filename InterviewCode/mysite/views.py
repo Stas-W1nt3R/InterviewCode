@@ -3,14 +3,14 @@ from .serializers import *
 from .models import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .permissions import IsInterviewer
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
@@ -76,8 +76,10 @@ class RoomViewSet(viewsets.ModelViewSet):
         )
 
 
-class RoomParticipantViewSet(viewsets.ModelViewSet):
-    queryset = RoomParticipant.objects.all()
+class RoomParticipantViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    def get_queryset(self):
+        return RoomParticipant.objects.filter(room__users=self.request.user)
+
     serializer_class = RoomParticipantSerializer
     permission_classes = [IsAuthenticated]
 

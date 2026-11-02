@@ -24,9 +24,9 @@ from mysite.views import *
 
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet)
+router.register(r'users', UserViewSet, basename='users')
 router.register(r'rooms', RoomViewSet, basename='rooms')
-router.register(r'room_participants', RoomParticipantViewSet)
+router.register(r'room_participants', RoomParticipantViewSet, basename='room_participant')
 router.register(r'tasks', TaskViewSet)
 router.register(r'test_cases', TestCaseViewSet)
 router.register(r'solutions', SolutionViewSet)
