@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from .permissions import IsInterviewer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -17,7 +18,11 @@ class UserViewSet(viewsets.ModelViewSet):
 class RoomViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = RoomSerializer
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ('update', 'partial_update', 'destroy'):
+            return [IsAuthenticated(), IsInterviewer()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         return Room.objects.filter(users=self.request.user).prefetch_related('participants__user')

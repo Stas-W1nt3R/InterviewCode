@@ -63,6 +63,7 @@ class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ['id', 'name', 'uuid', 'users', 'users_ids', 'task', 'status']
+        read_only_fields = ('status',)
 
 
 class RoomParticipantSerializer(serializers.ModelSerializer):
