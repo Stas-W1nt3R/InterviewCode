@@ -11,6 +11,7 @@ from .permissions import IsInterviewer
 class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     def get_queryset(self):
         return User.objects.filter(id=self.request.user.id)
+
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
@@ -84,7 +85,12 @@ class RoomParticipantViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
+    def get_queryset(self):
+        return Task.objects.filter(author=self.request.user)
+
+    def perform_create(self, serializer):
+        task = serializer.save(author=self.request.user)
+
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 

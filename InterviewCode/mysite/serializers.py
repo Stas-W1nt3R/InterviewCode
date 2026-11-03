@@ -76,9 +76,10 @@ class RoomParticipantSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
     class Meta:
         model = Task
-        fields = '__all__'
+        fields = ['id', 'author', 'name', 'description', 'created_at', 'updated_at']
 
 
 class TestCaseSerializer(serializers.ModelSerializer):

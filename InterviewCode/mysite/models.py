@@ -51,6 +51,7 @@ class RoomParticipant(models.Model):
 
 
 class Task(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
     name = models.CharField(max_length=150)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
