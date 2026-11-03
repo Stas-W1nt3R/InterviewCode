@@ -28,7 +28,7 @@ router.register(r'users', UserViewSet, basename='users')
 router.register(r'rooms', RoomViewSet, basename='rooms')
 router.register(r'room_participants', RoomParticipantViewSet, basename='room_participant')
 router.register(r'tasks', TaskViewSet, basename='task')
-router.register(r'test_cases', TestCaseViewSet)
+router.register(r'test_cases', TestCaseViewSet, basename='test_case')
 router.register(r'solutions', SolutionViewSet)
 router.register(r'register', RegistrationViewSet, basename='register')
 

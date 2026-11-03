@@ -84,9 +84,20 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class TestCaseSerializer(serializers.ModelSerializer):
     task = TaskSerializer(read_only=True)
+    task_id = serializers.PrimaryKeyRelatedField(
+        queryset=Task.objects.all(),
+        source='task',
+        write_only=True,
+    )
+
     class Meta:
         model = TestCase
-        fields = ['id', 'task', 'enter_values', 'exit_values','expected_values']
+        fields = ['id', 'task', 'task_id', 'enter_values', 'exit_values','expected_values']
+
+    def validate_task_id(self, value):
+        if value.author != self.context['request'].user:
+            raise serializers.ValidationError('Это не ваша задача!')
+        return value
 
 
 class SolutionSerializer(serializers.ModelSerializer):

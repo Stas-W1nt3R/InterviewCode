@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.generics import get_object_or_404
 from .permissions import IsInterviewer
 
 
@@ -89,13 +90,15 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Task.objects.filter(author=self.request.user)
 
     def perform_create(self, serializer):
-        task = serializer.save(author=self.request.user)
+        serializer.save(author=self.request.user)
 
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
 class TestCaseViewSet(viewsets.ModelViewSet):
-    queryset = TestCase.objects.all()
+    def get_queryset(self):
+        return TestCase.objects.filter(task__author=self.request.user).select_related('task')
+
     serializer_class = TestCaseSerializer
     permission_classes = [IsAuthenticated]
 
