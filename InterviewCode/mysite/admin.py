@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import *
+from .models import User, Room, RoomParticipant, Task, TestCase, Solution
 
 admin.site.register(User)
 admin.site.register(Room)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import *
+from .models import User, Room, RoomParticipant, Task, TestCase, Solution
 from django.contrib.auth.password_validation import validate_password
 
 
@@ -102,11 +102,6 @@ class TestCaseSerializer(serializers.ModelSerializer):
 
 class SolutionSerializer(serializers.ModelSerializer):
     task = TaskSerializer(read_only=True)
-    task_id = serializers.PrimaryKeyRelatedField(
-        queryset=Task.objects.all(),
-        source='task',
-        write_only=True
-    )
     room = RoomSerializer(read_only=True)
     room_id = serializers.PrimaryKeyRelatedField(
         queryset=Room.objects.all(),
@@ -114,13 +109,17 @@ class SolutionSerializer(serializers.ModelSerializer):
         write_only=True
     )
     users = UserSerializer(many=True, read_only=True)
-    users_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=User.objects.all(),
-        source='users',
-        write_only=True
-    )
 
     class Meta:
         model = Solution
-        fields = ['id', 'task', 'task_id', 'room','room_id', 'users', 'users_ids', 'code', 'status']
+        fields = ['id', 'task', 'room','room_id', 'users', 'code', 'status']
+        read_only_fields = ('status',)
+
+    def validate_room_id(self, value):
+        if not value.participants.filter(user=self.context['request'].user).exists():
+            raise serializers.ValidationError('Вы не участник этой комнаты')
+
+        if value.task is None:
+            raise serializers.ValidationError('Вы не указали задачу для комнаты')
+
+        return value

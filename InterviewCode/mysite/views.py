@@ -1,12 +1,13 @@
 from rest_framework import viewsets, mixins, status
-from .serializers import *
-from .models import *
+from .serializers import UserSerializer, RoomSerializer, RoomParticipantSerializer, TaskSerializer, TestCaseSerializer, SolutionSerializer, RegistrationSerializer
+from .models import User, Room, RoomParticipant, Task, TestCase, Solution
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import get_object_or_404
 from .permissions import IsInterviewer
+from django.db.models import Q
 
 
 class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
@@ -103,7 +104,17 @@ class TestCaseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class SolutionViewSet(viewsets.ModelViewSet):
-    queryset = Solution.objects.all()
+    def get_queryset(self):
+        return (Solution.objects.filter(Q(users=self.request.user) |
+                                        Q(room__participants__user=self.request.user,
+                                          room__participants__role=RoomParticipant.Roles.INTERVIEWER)).
+                select_related('room', 'task').prefetch_related('users').distinct())
+
+    def perform_create(self, serializer):
+        room = serializer.validated_data['room']
+        solution = serializer.save(task=room.task)
+        solution.users.add(self.request.user)
+
     serializer_class = SolutionSerializer
     permission_classes = [IsAuthenticated]
 

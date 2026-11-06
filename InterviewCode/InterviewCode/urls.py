@@ -29,7 +29,7 @@ router.register(r'rooms', RoomViewSet, basename='rooms')
 router.register(r'room_participants', RoomParticipantViewSet, basename='room_participant')
 router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'test_cases', TestCaseViewSet, basename='test_case')
-router.register(r'solutions', SolutionViewSet)
+router.register(r'solutions', SolutionViewSet, basename='solution')
 router.register(r'register', RegistrationViewSet, basename='register')
 
 urlpatterns = [
