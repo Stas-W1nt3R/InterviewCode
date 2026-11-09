@@ -15,7 +15,7 @@ def get_user_from_token(token):
     try:
         token = AccessToken(token)
         user_id = token['user_id']
-        logger.info(f"User: {user_id}")
+        logger.info("User: %s", user_id)
         return User.objects.get(id=user_id)
 
     except (TokenError, User.DoesNotExist, KeyError) as e:

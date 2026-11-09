@@ -58,7 +58,7 @@ class RoomViewSet(viewsets.ModelViewSet):
             room.status = Room.Status.PROCESSING
             room.save(update_fields=['status'])
 
-            logger.info(f"The user {participant.user.id} joined the room {room.uuid}")
+            logger.info("The user %s joined the room %s", participant.user.id, room.uuid)
 
         return Response(
             self.get_serializer(room).data, status=status.HTTP_200_OK
@@ -79,7 +79,7 @@ class RoomViewSet(viewsets.ModelViewSet):
         room.status = Room.Status.COMPLETED
         room.save(update_fields=['status'])
 
-        logger.info(f"The user: {request.user.id} finished the room: {room.uuid}")
+        logger.info("The user: %s finished the room: %s", request.user.id, room.uuid)
 
         return Response(
             RoomSerializer(room).data, status=status.HTTP_200_OK

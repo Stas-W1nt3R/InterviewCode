@@ -21,15 +21,15 @@ class RoomConsumer(AsyncWebsocketConsumer):
 
         if not self.scope['user'].is_authenticated:
             await self.close(code=401)
-            logger.warning(f"The {self.scope['user']} is not authenticated")
+            logger.warning("The %s is not authenticated", self.scope['user'])
             return
 
         if not await is_user_participant_in_room(self.room_uuid, self.scope['user'].id):
             await self.close(code=403)
-            logger.warning(f"The {self.scope['user']} is not a participant")
+            logger.warning("The %s is not a participant", self.scope['user'])
             return
 
-        logger.info(f"The {self.scope['user']} is connected")
+        logger.info("The %s is connected", self.scope['user'])
 
         await self.channel_layer.group_add(
             self.room_group_uuid,
@@ -40,7 +40,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if hasattr(self, 'room_group_uuid'):
-            logger.info(f"The {self.scope['user']} is disconnected")
+            logger.info("The %s is disconnected", self.scope['user'])
             await self.channel_layer.group_discard(
                 self.room_group_uuid,
                 self.channel_name

@@ -36,7 +36,7 @@ def run_code(code, uuid):
             stderr=True,
         )
 
-        logger.info(f"Container in room {uuid} created")
+        logger.info("Container in room %s created", uuid)
 
         room_dict[uuid] = container
 
@@ -49,7 +49,7 @@ def run_code(code, uuid):
             count_bytes += len(chunk)
             if count_bytes > 10_000:
                 kill_container(container)
-                logger.warning(f"Container in room {uuid} output limit exceeded")
+                logger.warning("Container in room %s output limit exceeded", uuid)
                 yield f"The code terminated because the input limit was exceeded."
 
                 break
@@ -57,11 +57,11 @@ def run_code(code, uuid):
             yield chunk.decode('utf-8', errors='replace')
 
         result = container.wait()
-        logger.info(f"Container in room {uuid} completed with code {result['StatusCode']}")
+        logger.info("Container in room %s completed with code %s", uuid, result['StatusCode'])
         yield f"\n[Завершено, код выхода: {result['StatusCode']}]\n"
 
     except Exception as e:
-        logger.exeption(f"Container run fail in room {uuid}: {e}")
+        logger.exeption("Container run fail in room %s: %r", uuid, e)
         yield f"Error: {e}"
 
     finally:
@@ -70,7 +70,7 @@ def run_code(code, uuid):
 
         with suppress(DockerException, AttributeError):
             container.remove(force=True)
-            logger.info(f"Container in room {uuid} removed")
+            logger.info("Container in room %s removed", uuid)
 
         room_dict.pop(uuid, None)
 
@@ -80,7 +80,7 @@ def is_running(uuid):
 def stop_code(uuid):
     try:
         kill_container(room_dict[uuid])
-        logger.info(f"Container in room {uuid} stopped by user")
+        logger.info("Container in room %s stopped by user", uuid)
     except KeyError:
         return False
 
