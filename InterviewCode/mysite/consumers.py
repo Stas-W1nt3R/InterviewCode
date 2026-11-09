@@ -4,7 +4,10 @@ from .models import RoomParticipant
 from .code_runner import run_code, stop_code, is_running
 import asyncio
 import json
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 @database_sync_to_async
 def is_user_participant_in_room(room_uuid, user_id):
@@ -18,11 +21,15 @@ class RoomConsumer(AsyncWebsocketConsumer):
 
         if not self.scope['user'].is_authenticated:
             await self.close(code=401)
+            logger.warning(f"The {self.scope['user']} is not authenticated")
             return
 
         if not await is_user_participant_in_room(self.room_uuid, self.scope['user'].id):
             await self.close(code=403)
+            logger.warning(f"The {self.scope['user']} is not a participant")
             return
+
+        logger.info(f"The {self.scope['user']} is connected")
 
         await self.channel_layer.group_add(
             self.room_group_uuid,
@@ -33,6 +40,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if hasattr(self, 'room_group_uuid'):
+            logger.info(f"The {self.scope['user']} is disconnected")
             await self.channel_layer.group_discard(
                 self.room_group_uuid,
                 self.channel_name

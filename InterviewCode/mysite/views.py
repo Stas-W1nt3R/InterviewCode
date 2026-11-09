@@ -8,7 +8,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import get_object_or_404
 from .permissions import IsInterviewer
 from django.db.models import Q
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     def get_queryset(self):
@@ -55,6 +58,8 @@ class RoomViewSet(viewsets.ModelViewSet):
             room.status = Room.Status.PROCESSING
             room.save(update_fields=['status'])
 
+            logger.info(f"The user {participant.user.id} joined the room {room.uuid}")
+
         return Response(
             self.get_serializer(room).data, status=status.HTTP_200_OK
         )
@@ -73,6 +78,8 @@ class RoomViewSet(viewsets.ModelViewSet):
 
         room.status = Room.Status.COMPLETED
         room.save(update_fields=['status'])
+
+        logger.info(f"The user: {request.user.id} finished the room: {room.uuid}")
 
         return Response(
             RoomSerializer(room).data, status=status.HTTP_200_OK
