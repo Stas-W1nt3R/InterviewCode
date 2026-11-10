@@ -1,11 +1,12 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-from .models import RoomParticipant
-from .code_runner import run_code, stop_code, is_running
 import asyncio
 import json
 import logging
 
+from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
+
+from .code_runner import is_running, run_code, stop_code
+from .models import RoomParticipant
 
 logger = logging.getLogger(__name__)
 

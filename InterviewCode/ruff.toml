@@ -1,0 +1,9 @@
+target-version = "py313"
+line-length = 120
+
+[lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4"]
+
+[lint.per-file-ignores]
+"mysite/migrations/**" = ["RUF012", "I001", "E501"]
+"mysite/**" = ["RUF012"]

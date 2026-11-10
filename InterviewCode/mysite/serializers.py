@@ -1,6 +1,7 @@
-from rest_framework import serializers
-from .models import User, Room, RoomParticipant, Task, TestCase, Solution
 from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
+
+from .models import Room, RoomParticipant, Solution, Task, TestCase, User
 
 
 class RegistrationSerializer(serializers.ModelSerializer):

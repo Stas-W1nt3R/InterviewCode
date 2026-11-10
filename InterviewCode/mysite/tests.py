@@ -1,19 +1,26 @@
-from rest_framework.test import APITestCase
 from rest_framework import status
-from .models import User, Room, RoomParticipant, Solution, Task, TestCase
+from rest_framework.test import APITestCase
+
 from .code_runner import run_code
+from .models import Room, RoomParticipant, Solution, Task, TestCase, User
 
 
 class ClientTestCase(APITestCase):
     def setUp(self):
         self.user1 = User.objects.create_user(username='test', email='test@gmail.com', password='password123')
         self.user2 = User.objects.create_user(username='test2', email='test2@gmail.com', password='password123')
-        self.outsider = User.objects.create(username='anonymous', email='anonymous@gmail.com', password='passwordanonymous')
+        self.outsider = User.objects.create(username='anonymous',
+                                            email='anonymous@gmail.com',
+                                            password='passwordanonymous'
+                                            )
 
         self.task = Task.objects.create(author=self.user1, name='test task', description='Task for tests')
         self.room = Room.objects.create(name='test_room', status=Room.Status.PROCESSING, task=self.task)
 
-        self.participant1 = RoomParticipant.objects.create(room=self.room, user=self.user1, role=RoomParticipant.Roles.INTERVIEWER)
+        self.participant1 = RoomParticipant.objects.create(room=self.room,
+                                                           user=self.user1,
+                                                           role=RoomParticipant.Roles.INTERVIEWER
+                                                           )
         self.participant2 = RoomParticipant.objects.create(room=self.room, user=self.user2)
 
         self.solution = Solution.objects.create(room=self.room, task=self.task, code='print(52)')

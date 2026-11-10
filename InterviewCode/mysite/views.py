@@ -1,15 +1,24 @@
-from rest_framework import viewsets, mixins, status
-from .serializers import UserSerializer, RoomSerializer, RoomParticipantSerializer, TaskSerializer, TestCaseSerializer, SolutionSerializer, RegistrationSerializer
-from .models import User, Room, RoomParticipant, Task, TestCase, Solution
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.generics import get_object_or_404
-from .permissions import IsInterviewer
-from django.db.models import Q
 import logging
 
+from django.db.models import Q
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import Room, RoomParticipant, Solution, Task, TestCase, User
+from .permissions import IsInterviewer
+from .serializers import (
+    RegistrationSerializer,
+    RoomParticipantSerializer,
+    RoomSerializer,
+    SolutionSerializer,
+    TaskSerializer,
+    TestCaseSerializer,
+    UserSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +83,8 @@ class RoomViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_403_FORBIDDEN)
 
         if room.status != Room.Status.PROCESSING:
-            return Response({'detail': 'Комнату можно завершить только в статусе Processing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Комнату можно завершить только в статусе Processing'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         room.status = Room.Status.COMPLETED
         room.save(update_fields=['status'])
