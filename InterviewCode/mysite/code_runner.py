@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 client = docker.from_env()
 room_dict = {}
 
-def kill_container(container):
+def kill_container(container, reason=None):
+    if reason == 'timer':
+        logger.warning('The %s was terminated because it exceeded its runtime', container)
     try:
         container.kill()
     except (NotFound, APIError):
@@ -40,7 +42,7 @@ def run_code(code, uuid):
 
         room_dict[uuid] = container
 
-        timer = Timer(10, kill_container, [container])
+        timer = Timer(10, kill_container, [container], kwargs={'reason': 'timer'})
         timer.start()
 
         count_bytes = 0
@@ -49,7 +51,7 @@ def run_code(code, uuid):
             count_bytes += len(chunk)
             if count_bytes > 10_000:
                 kill_container(container)
-                logger.warning("Container in room %s output limit exceeded", uuid)
+                logger.warning("Container in room %s was terminated because the data output limit was exceeded", uuid)
                 yield f"The code terminated because the input limit was exceeded."
 
                 break
