@@ -171,7 +171,7 @@ InterviewCode/
 │   ├── consumers.py        # RoomConsumer (байты Yjs) и RunConsumer (JSON, запуск кода)
 │   ├── ws_auth.py          # middleware для проверки JWT в WebSocket
 │   ├── code_runner.py      # запуск и остановка контейнера-песочницы
-│   └── tests/              # тесты
+│   └── tests.py            # тесты
 │
 ├── .env.example
 ├── Dockerfile
