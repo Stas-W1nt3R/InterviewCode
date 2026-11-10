@@ -15,7 +15,7 @@
     .container { width: 100%; max-width: 640px; }
     h1 { font-size: 24px; margin-bottom: 4px; }
     .muted { color: #8b949e; font-size: 14px; margin-bottom: 24px; }
- 
+
     .card {
       background: #161b22; border: 1px solid #30363d;
       border-radius: 10px; padding: 20px; margin-bottom: 16px;
@@ -26,7 +26,7 @@
       color: #e6edf3; font-size: 14px;
     }
     input:focus { outline: none; border-color: #58a6ff; }
- 
+
     button {
       padding: 10px 16px; border: none; border-radius: 6px;
       background: #238636; color: #fff; font-size: 14px; cursor: pointer;
@@ -34,11 +34,11 @@
     button:hover { background: #2ea043; }
     button.secondary { background: #21262d; border: 1px solid #30363d; }
     button.secondary:hover { background: #30363d; }
- 
+
     .row { display: flex; gap: 10px; align-items: center; }
     .error { color: #f85149; font-size: 13px; margin-top: 8px; }
     .hidden { display: none; }
- 
+
     #editor {
       height: 400px;
       border-radius: 6px;
@@ -47,9 +47,9 @@
 
     .card-header {
       display: flex;
-      justify-content: flex-start; 
+      justify-content: flex-start;
       gap: 10px;
-      align-items: center;            
+      align-items: center;
       margin-bottom: 12px;
     }
 
@@ -71,19 +71,19 @@
       font-size: 13px;
       color: #e6edf3;
       height: 150px;
-      overflow-y: auto;      
-      white-space: pre-wrap;  
+      overflow-y: auto;
+      white-space: pre-wrap;
       word-break: break-all;
     }
 
   </style>
 </head>
- 
+
 <body>
     <div class="container">
         <h1>Комната</h1>
         <p class="muted">UUID : <span id="roomUuid"></span></p>
- 
+
         <div class="card">
             <div class="card-header">
               <h3>Код</h3>
@@ -95,13 +95,13 @@
             <div id="editor"></div>
             <pre id="output">Здесь будет вывод программы...</pre>
         </div>
- 
+
         <div class="card">
             <button onclick="finishRoom()">Завершить собеседование</button>
             <button class="secondary" onclick="leaveRoom()">Выйти в лобби</button>
         </div>
     </div>
- 
+
 <script type="importmap">
 {
   "imports": {
@@ -110,7 +110,7 @@
   }
 }
 </script>
- 
+
 <script src="{% static 'mysite/vendor/monaco/min/vs/loader.js' %}"></script>
 <script>
   require.config({ paths: { vs: "{% static 'mysite/vendor/monaco/min/vs' %}" } });
@@ -123,7 +123,7 @@
     });
   });
 </script>
- 
+
 <script>
 
 let runWs = null;
@@ -131,7 +131,7 @@ let runWs = null;
 function token() {
   return localStorage.getItem('access');
 }
- 
+
 async function api(path, options = {}) {
   const API = '/api';
   const res = await fetch(API + path, {
@@ -146,7 +146,7 @@ async function api(path, options = {}) {
 }
 
 let uuid = null;
- 
+
 async function finishRoom() {
   try {
     await api(`/rooms/${uuid}/finish/`, { method: 'POST' });
@@ -154,18 +154,18 @@ async function finishRoom() {
     location.href = '/';
   } catch (e) { alert(e.message); }
 }
- 
+
 function leaveRoom() {
   location.href = '/';
 }
- 
+
 async function init() {
   if (!token()) {
     sessionStorage.setItem('redirect_after_login', location.pathname);
     location.href = 'register/';
     return;
   }
- 
+
   uuid = location.pathname.split('/').filter(Boolean).pop();
 
   if (!uuid) {
@@ -173,9 +173,9 @@ async function init() {
     location.href = '/';
     return;
   }
- 
+
   document.getElementById('roomUuid').textContent = uuid;
- 
+
   try {
     await api(`/rooms/${uuid}/join/`, { method: 'POST' });
 
@@ -211,7 +211,7 @@ async function init() {
 
     const room = await api(`/rooms/${uuid}/`);
     console.log('Комната:', room);
- 
+
     // ждём, пока AMD Monaco + динамический импорт room-editor.mjs отработают
     while (!window.__roomEditorReady) {
       await new Promise(r => setTimeout(r, 50));
@@ -224,7 +224,7 @@ async function init() {
 }
 
 init();
- 
+
 function run_button(){
   if (runWs && runWs.readyState === WebSocket.OPEN){
     document.getElementById('output').textContent = '';
