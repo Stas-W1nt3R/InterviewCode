@@ -15,13 +15,11 @@ from django.core.asgi import get_asgi_application
 import mysite.routing
 from mysite.ws_auth import JWTAuthMiddleware
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'InterviewCode.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "InterviewCode.settings")
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    "websocket":JWTAuthMiddleware(
-        URLRouter(
-            mysite.routing.websocket_urlpatterns
-        )
-    ),
-})
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": JWTAuthMiddleware(URLRouter(mysite.routing.websocket_urlpatterns)),
+    }
+)

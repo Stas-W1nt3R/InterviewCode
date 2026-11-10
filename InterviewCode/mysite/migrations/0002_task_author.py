@@ -6,16 +6,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('mysite', '0001_initial'),
+        ("mysite", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='task',
-            name='author',
-            field=models.ForeignKey(default=2, on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to=settings.AUTH_USER_MODEL),
+            model_name="task",
+            name="author",
+            field=models.ForeignKey(
+                default=2,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="tasks",
+                to=settings.AUTH_USER_MODEL,
+            ),
             preserve_default=False,
         ),
     ]

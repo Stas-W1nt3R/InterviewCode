@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
@@ -32,25 +33,22 @@ from mysite.views import (
 )
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet, basename='users')
-router.register(r'rooms', RoomViewSet, basename='rooms')
-router.register(r'room_participants', RoomParticipantViewSet, basename='room_participant')
-router.register(r'tasks', TaskViewSet, basename='task')
-router.register(r'test_cases', TestCaseViewSet, basename='test_case')
-router.register(r'solutions', SolutionViewSet, basename='solution')
-router.register(r'register', RegistrationViewSet, basename='register')
+router.register(r"users", UserViewSet, basename="users")
+router.register(r"rooms", RoomViewSet, basename="rooms")
+router.register(r"room_participants", RoomParticipantViewSet, basename="room_participant")
+router.register(r"tasks", TaskViewSet, basename="task")
+router.register(r"test_cases", TestCaseViewSet, basename="test_case")
+router.register(r"solutions", SolutionViewSet, basename="solution")
+router.register(r"register", RegistrationViewSet, basename="register")
 
 urlpatterns = [
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name="schema"), name='swagger-ui'),
-
-    path('api/', include(router.urls)),
-
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-    path('', TemplateView.as_view(template_name='index.html'), name='index'),
-    path('register/', TemplateView.as_view(template_name='register.html'), name='register'),
-    path('room/<uuid:uuid>/', TemplateView.as_view(template_name='room.html'), name='room'),
-    path('admin/', admin.site.urls),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/", include(router.urls)),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("", TemplateView.as_view(template_name="index.html"), name="index"),
+    path("register/", TemplateView.as_view(template_name="register.html"), name="register"),
+    path("room/<uuid:uuid>/", TemplateView.as_view(template_name="room.html"), name="room"),
+    path("admin/", admin.site.urls),
 ]

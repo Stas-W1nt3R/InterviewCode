@@ -12,8 +12,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'password_confirm')
-        read_only_fields = ('id',)
+        fields = ("id", "username", "email", "password", "password_confirm")
+        read_only_fields = ("id",)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -30,17 +30,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs: dict) -> dict:
-        if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError({
-                'password_confirm': 'Пароли не совпадают!'
-            })
+        if attrs["password"] != attrs["password_confirm"]:
+            raise serializers.ValidationError({"password_confirm": "Пароли не совпадают!"})
         return attrs
 
     def create(self, validated_data: dict) -> User:
         user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password'],
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
         )
         return user
 
@@ -48,23 +46,19 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email']
+        fields = ["id", "username", "email"]
 
 
 class RoomSerializer(serializers.ModelSerializer):
     users = UserSerializer(many=True, read_only=True)
     users_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=User.objects.all(),
-        source='users',
-        write_only=True,
-        required=False
+        many=True, queryset=User.objects.all(), source="users", write_only=True, required=False
     )
 
     class Meta:
         model = Room
-        fields = ['id', 'name', 'uuid', 'users', 'users_ids', 'task', 'status']
-        read_only_fields = ('status',)
+        fields = ["id", "name", "uuid", "users", "users_ids", "task", "status"]
+        read_only_fields = ("status",)
 
 
 class RoomParticipantSerializer(serializers.ModelSerializer):
@@ -73,54 +67,51 @@ class RoomParticipantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomParticipant
-        fields = ['id', 'user', 'room','role']
+        fields = ["id", "user", "room", "role"]
 
 
 class TaskSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
+
     class Meta:
         model = Task
-        fields = ['id', 'author', 'name', 'description', 'created_at', 'updated_at']
+        fields = ["id", "author", "name", "description", "created_at", "updated_at"]
 
 
 class TestCaseSerializer(serializers.ModelSerializer):
     task = TaskSerializer(read_only=True)
     task_id = serializers.PrimaryKeyRelatedField(
         queryset=Task.objects.all(),
-        source='task',
+        source="task",
         write_only=True,
     )
 
     class Meta:
         model = TestCase
-        fields = ['id', 'task', 'task_id', 'enter_values', 'exit_values','expected_values']
+        fields = ["id", "task", "task_id", "enter_values", "exit_values", "expected_values"]
 
     def validate_task_id(self, value):
-        if value.author != self.context['request'].user:
-            raise serializers.ValidationError('Это не ваша задача!')
+        if value.author != self.context["request"].user:
+            raise serializers.ValidationError("Это не ваша задача!")
         return value
 
 
 class SolutionSerializer(serializers.ModelSerializer):
     task = TaskSerializer(read_only=True)
     room = RoomSerializer(read_only=True)
-    room_id = serializers.PrimaryKeyRelatedField(
-        queryset=Room.objects.all(),
-        source='room',
-        write_only=True
-    )
+    room_id = serializers.PrimaryKeyRelatedField(queryset=Room.objects.all(), source="room", write_only=True)
     users = UserSerializer(many=True, read_only=True)
 
     class Meta:
         model = Solution
-        fields = ['id', 'task', 'room','room_id', 'users', 'code', 'status']
-        read_only_fields = ('status',)
+        fields = ["id", "task", "room", "room_id", "users", "code", "status"]
+        read_only_fields = ("status",)
 
     def validate_room_id(self, value):
-        if not value.participants.filter(user=self.context['request'].user).exists():
-            raise serializers.ValidationError('Вы не участник этой комнаты')
+        if not value.participants.filter(user=self.context["request"].user).exists():
+            raise serializers.ValidationError("Вы не участник этой комнаты")
 
         if value.task is None:
-            raise serializers.ValidationError('Вы не указали задачу для комнаты')
+            raise serializers.ValidationError("Вы не указали задачу для комнаты")
 
         return value
