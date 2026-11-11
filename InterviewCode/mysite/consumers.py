@@ -20,6 +20,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_uuid = self.scope["url_route"]["kwargs"]["room_uuid"]
         self.room_group_uuid = f"room_{self.room_uuid}"
+        self.run_task = None
 
         if not self.scope["user"].is_authenticated:
             await self.close(code=401)
@@ -77,6 +78,11 @@ class RunConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if hasattr(self, "room_group_uuid"):
+            task = getattr(self, "run_task", None)
+            if task is not None and not asyncio.done(task):
+                await asyncio.to_thread(stop_code, self.room_uuid)
+                task.cancel()
+
             await self.channel_layer.group_discard(self.room_group_uuid, self.channel_name)
 
     async def run_job(self, code):
