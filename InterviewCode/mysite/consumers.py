@@ -79,7 +79,7 @@ class RunConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         if hasattr(self, "room_group_uuid"):
             task = getattr(self, "run_task", None)
-            if task is not None and not asyncio.done(task):
+            if task is not None and not task.done():
                 await asyncio.to_thread(stop_code, self.room_uuid)
                 task.cancel()
 
