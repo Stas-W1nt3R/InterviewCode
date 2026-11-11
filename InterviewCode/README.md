@@ -7,6 +7,7 @@
 [![DRF](https://img.shields.io/badge/DRF-3.18-A30000?logo=django&logoColor=white)](https://www.django-rest-framework.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Django CI](https://github.com/Stas-W1nt3R/InterviewCode/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Stas-W1nt3R/InterviewCode/actions/workflows/ci.yml)
 
 ![Демо](docs/demo.gif)
 
