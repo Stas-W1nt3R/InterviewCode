@@ -18,14 +18,18 @@ def kill_container(container, reason=None):
         container.kill()
 
 
-def run_code(code, uuid):
+def run_code(code, uuid, stdin_text=""):
     container = None
     timer = None
+
+    if stdin_text and not stdin_text.endswith("\n"):
+        stdin_text += "\n"
 
     try:
         container = client.containers.run(
             image="python:3.13-slim",
-            command=["python", "-c", code],
+            command=["sh", "-c", 'printf "%s" "$INPUT" | python -c "$CODE"'],
+            environment={"CODE": code, "INPUT": stdin_text},
             network_disabled=True,
             nano_cpus=500_000_000,
             mem_limit="128m",
@@ -51,7 +55,7 @@ def run_code(code, uuid):
             if count_bytes > 10_000:
                 kill_container(container)
                 logger.warning("Container in room %s was terminated because the data output limit was exceeded", uuid)
-                yield "The code terminated because the input limit was exceeded."
+                yield "The code terminated because the output limit was exceeded."
 
                 break
 
@@ -62,7 +66,7 @@ def run_code(code, uuid):
         yield f"\n[Завершено, код выхода: {result['StatusCode']}]\n"
 
     except Exception as e:
-        logger.exсeption("Container run fail in room %s: %r", uuid, e)
+        logger.exception("Container run fail in room %s: %r", uuid, e)
         yield f"Error: {e}"
 
     finally:
