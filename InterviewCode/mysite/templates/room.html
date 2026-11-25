@@ -125,23 +125,66 @@
 </script>
 
 <script>
+const API = '/api';
 
 let runWs = null;
 
-function token() {
+async function refreshToken() {
+  const data = await fetch(API + '/token/refresh/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh: localStorage.getItem('refresh') }),
+  });
+
+  if (!data.ok) throw new Error((await data.json()).detail || data.statusText);
+
+  const result = await data.json();
+  localStorage.setItem('access', result.access);
+  if (result.refresh) {
+    localStorage.setItem('refresh', result.refresh);
+  }
+
   return localStorage.getItem('access');
 }
 
-async function api(path, options = {}) {
-  const API = '/api';
-  const res = await fetch(API + path, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token() ? { Authorization: 'Bearer ' + token() } : {}),
-    },
+function getOptions(options = {}) {
+  return {
     ...options,
-  });
+    headers: {
+      ...options.headers,
+      'Content-Type': 'application/json',
+      ...(localStorage.getItem('access') ? { Authorization: 'Bearer ' + localStorage.getItem('access') } : {}),
+    },
+  };
+}
+
+async function api(path, options = {}) {
+  const res = await fetch(API + path, getOptions(options));
+
+  if (res.status === 401) {
+    try{
+      await refreshToken();
+    } catch (e) {
+      localStorage.clear();
+      window.location.href = '/register.html';
+      return;
+    }
+
+    const data = await fetch(API + path, getOptions(options));
+
+    if (data.status === 401) {
+      localStorage.clear();
+      window.location.href = '/register.html';
+      return;
+    }
+
+    if (!data.ok) throw new Error((await data.json()).detail || data.statusText);
+
+    return data.json();
+  }
+
   if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+
   return res.json();
 }
 
@@ -160,7 +203,7 @@ function leaveRoom() {
 }
 
 async function init() {
-  if (!token()) {
+  if (!localStorage.getItem('access')) {
     sessionStorage.setItem('redirect_after_login', location.pathname);
     location.href = 'register/';
     return;
@@ -176,10 +219,12 @@ async function init() {
 
   document.getElementById('roomUuid').textContent = uuid;
 
+  const output = document.getElementById("output");
+
   try {
     await api(`/rooms/${uuid}/join/`, { method: 'POST' });
 
-    const wsToken = token();
+    const wsToken = localStorage.getItem('access');
     const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
     runWs = new WebSocket(`${protocol}://${location.host}/ws/run/${uuid}/?token=${wsToken}`);
 
@@ -193,7 +238,6 @@ async function init() {
         return;
       }
 
-      const output = document.getElementById("output");
       if (data.type === 'run_output'){
         output.textContent += data.data;
         output.scrollTop = output.scrollHeight;
@@ -203,10 +247,10 @@ async function init() {
         document.getElementById('btn-run').disabled = true;
         output.textContent = '';
       }
+    }
 
-      runWs.onclose = (event) => {
-        output.textContent += "Соединение потеряно, перезагрузите страницу!";
-      }
+    runWs.onclose = (event) => {
+      output.textContent += "Соединение потеряно, перезагрузите страницу!";
     }
 
     const room = await api(`/rooms/${uuid}/`);

@@ -84,7 +84,9 @@ async function refreshToken() {
 
   const result = await data.json();
   localStorage.setItem('access', result.access);
-  localStorage.setItem('refresh', result.refresh);
+  if (result.refresh) {
+    localStorage.setItem('refresh', result.refresh);
+  }
 
   return localStorage.getItem('access');
 }
@@ -101,7 +103,7 @@ function getOptions(options = {}) {
 }
 
 async function api(path, options = {}) {
-  const res = await fetch(API + path, getOptions(options),);
+  const res = await fetch(API + path, getOptions(options));
 
   if (res.status === 401) {
     try{
@@ -112,7 +114,7 @@ async function api(path, options = {}) {
       return;
     }
 
-    const data = await fetch(API + path, getOptions(options),);
+    const data = await fetch(API + path, getOptions(options));
 
     if (data.status === 401) {
       localStorage.clear();
@@ -181,7 +183,7 @@ function logout() {
 }
 
 // Автовход, если токен ещё жив
-if (localStorage.getItem('access')) showLobby();
+if (localStorage.getItem('access')) { await showLobby(); }
 else{
   window.location.href = '/register.html';
 }
